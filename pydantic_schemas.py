@@ -14,3 +14,8 @@ class habit_base(BaseModel):
 class habit_create(habit_base):
     ...
     
+class user(user_base):
+    id:int
+    
+class habit(habit_base):
+    id:int
