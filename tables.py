@@ -11,6 +11,6 @@ with engine.begin() as conn:
                       name TEXT,
                       owner_id TEXT,
                       last_mark TEXT,
-                      streak INTEGER
+                      streak INTEGER,
                       FOREIGN KEY (owner_id) REFERENCES users(id))"""))
     
