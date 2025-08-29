@@ -1,5 +1,6 @@
-from engine import engine
+from db import engine
 from sqlalchemy import text
+
 with engine.begin() as conn:
     conn.execute(text("""CREATE TABLE IF NOT EXISTS users(
                       id INTEGER PRIMARY KEY AUTOINCREMENT,
