@@ -34,13 +34,7 @@ async def get_habit(habit_id:int,conn=Depends(get_conn)):
 
 @app.get("/")
 async def home():
-    return {"message":"""Hello everybody my name is Markiplier
-            and i am officially back!
-            in this API you can send GET to
-            /users, /users/{user_id}, /users/{user_id}, /users/{user_id}/habits, /habits, /habits/{habit_id}
-            POST to /users, /habits
-            PATCH to /habits/{habit_id}/mark to mark habit, /habits/{habit_id}/rename
-            DELETE to /habits/{habit_id}"""}
+    return {"message":"""Hello everybody my name is Markiplier and i am officially back! In this API you can send GET to /users, /users/{user_id}, /users/{user_id}, /users/{user_id}/habits, /habits, /habits/{habit_id} POST to /users, /habits PATCH to /habits/{habit_id}/mark to mark habit, /habits/{habit_id}/rename DELETE to /habits/{habit_id}"""}
     
 @app.post("/users")
 async def create_user(user_info:user_create,conn=Depends(get_conn)):
