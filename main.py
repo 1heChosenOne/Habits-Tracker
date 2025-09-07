@@ -1,9 +1,11 @@
-from fastapi import FastAPI ,Depends,HTTPException
+from fastapi import FastAPI ,Depends,HTTPException,Response,Request
 from db import get_conn
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from pydantic_schemas import user_create,habit_create,user,habit,habit_mark,new_habit_name
 from utils import current_time,get_habit_or_404,get_user_or_404,require_habit_row_exists
+from prometheus_client import Counter , Histogram,generate_latest,CONTENT_TYPE_LATEST
+import time
 
 app=FastAPI()
 
@@ -74,6 +76,24 @@ async def delete_habit(habit_id:int,conn=Depends(get_conn)):
     result=conn.execute(text("DELETE FROM habits WHERE id=:id RETURNING *"),{"id":habit_id}).fetchone()
     require_habit_row_exists(result,habit_id)
     return (dict(result._mapping) ,{"message":"deleted"})
+
+REQUEST_COUNT=Counter("http_requests_total","total of all http methods",["method","endpoint"])
+REQUEST_LATENCY=Histogram("http_request_latency_seconds","Время обработки HTTP-запроса",["endpoint"])
+
+@app.middleware("http")
+async def metrics_middleware(request:Request,call_next):
+    method=request.method
+    endpoint=request.url.path
+    start=time.time()
+    response = await call_next(request)
+    end=time.time()-start
+    REQUEST_COUNT.labels(method=method,endpoint=endpoint).inc()
+    REQUEST_LATENCY.labels(endpoint=endpoint).observe(end)
+    return response
+
+@app.get("/metrics")
+async def metrics():
+    return Response(generate_latest(),media_type=CONTENT_TYPE_LATEST)
 
 
     
