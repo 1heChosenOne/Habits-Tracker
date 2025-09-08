@@ -1,13 +1,24 @@
 from fastapi import FastAPI ,Depends,HTTPException,Response,Request
+from fastapi.security import HTTPBasic , HTTPBasicCredentials
 from db import get_conn
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from pydantic_schemas import user_create,habit_create,user,habit,habit_mark,new_habit_name
 from utils import current_time,get_habit_or_404,get_user_or_404,require_habit_row_exists
 from prometheus_client import Counter , Histogram,generate_latest,CONTENT_TYPE_LATEST
-import time
+import time,os
+from dotenv import load_dotenv
 
 app=FastAPI()
+
+security=HTTPBasic()
+
+load_dotenv()
+
+correct_login=os.getenv("CORRECT_LOGIN")
+correct_password=os.getenv("CORRECT_PASSWORD")
+
+
 
 @app.get("/users")
 async def users_all(conn=Depends(get_conn)):
@@ -91,8 +102,15 @@ async def metrics_middleware(request:Request,call_next):
     REQUEST_LATENCY.labels(endpoint=endpoint).observe(end)
     return response
 
+def check_admin_auth(credential:HTTPBasicCredentials=Depends(security)):
+    if not credential.username == correct_login or not credential.password == correct_password:
+        raise HTTPException(status_code=401,detail="Wrong login or password")
+    return credential
+    
+
+
 @app.get("/metrics")
-async def metrics():
+async def metrics(auth:HTTPBasicCredentials=Depends(check_admin_auth)):
     return Response(generate_latest(),media_type=CONTENT_TYPE_LATEST)
 
 
