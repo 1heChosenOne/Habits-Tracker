@@ -91,7 +91,7 @@ async def delete_habit(habit_id:int,conn=Depends(get_conn)):
 
 
 REQUEST_COUNT=Counter("http_requests_total","total of all http methods",["method","endpoint"])
-REQUEST_LATENCY=Histogram("http_request_latency_seconds","Время обработки HTTP-запроса",["endpoint"])
+REQUEST_LATENCY=Histogram("http_request_latency_seconds","HTTP request latency",["method", "endpoint"])
 
 @app.middleware("http")
 async def metrics_middleware(request:Request,call_next):
