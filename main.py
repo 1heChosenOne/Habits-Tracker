@@ -101,7 +101,7 @@ async def metrics_middleware(request:Request,call_next):
     response = await call_next(request)
     end=time.time()-start
     REQUEST_COUNT.labels(method=method,endpoint=endpoint).inc()
-    REQUEST_LATENCY.labels(endpoint=endpoint).observe(end)
+    REQUEST_LATENCY.labels(method=method,endpoint=endpoint).observe(end)
     return response
 
 
