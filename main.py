@@ -7,6 +7,7 @@ from pydantic_schemas import user_create,habit_create,user,habit,habit_mark,new_
 from utils import current_time,get_habit_or_404,get_user_or_404,require_habit_row_exists
 from prometheus_client import Counter , Histogram,generate_latest,CONTENT_TYPE_LATEST
 import time,os
+import tables
 from dotenv import load_dotenv
 
 app=FastAPI()
@@ -88,6 +89,7 @@ async def delete_habit(habit_id:int,conn=Depends(get_conn)):
     require_habit_row_exists(result,habit_id)
     return (dict(result._mapping) ,{"message":"deleted"})
 
+
 REQUEST_COUNT=Counter("http_requests_total","total of all http methods",["method","endpoint"])
 REQUEST_LATENCY=Histogram("http_request_latency_seconds","Время обработки HTTP-запроса",["endpoint"])
 
@@ -102,12 +104,11 @@ async def metrics_middleware(request:Request,call_next):
     REQUEST_LATENCY.labels(endpoint=endpoint).observe(end)
     return response
 
+
 def check_admin_auth(credential:HTTPBasicCredentials=Depends(security)):
     if not credential.username == correct_login or not credential.password == correct_password:
         raise HTTPException(status_code=401,detail="Wrong login or password")
     return credential
-    
-
 
 @app.get("/metrics")
 async def metrics(auth:HTTPBasicCredentials=Depends(check_admin_auth)):
