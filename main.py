@@ -24,10 +24,7 @@ database_path="database1.db"
 REQUEST_COUNT=Counter("http_requests_total","total of all http methods",["method","endpoint"])
 REQUEST_LATENCY=Histogram("http_request_latency_seconds","HTTP request latency",["method", "endpoint"])
 DB_SIZE=Gauge("sqlite_db_size","size of sqlite database in bytes")
-CACHE_SIZE=Gauge("sqlite_cache_size_pages", "SQLite cache size in pages")
-OVERFLOW_SIZE=Gauge("sqlite_cache_overflow_pages", "Pages that could not fit in cache")
-
-
+SQLITE_USED_RAM=Gauge("sqlite_memory_used_bytes", "SQLite used RAM in bytes")
 
 
 
@@ -134,10 +131,8 @@ def check_admin_auth(credential:HTTPBasicCredentials=Depends(security)):
 async def on_startup_metrics_loop():
     apsw_conn=apsw.Connection(database_path)
     while True:
-        cache_size=apsw_conn.status(apsw.SQLITE_STATUS_PAGECACHE_SIZE)[0]
-        overflow_size=apsw_conn.status(apsw.SQLITE_STATUS_PAGECACHE_OVERFLOW)[0]
-        CACHE_SIZE.set(cache_size)
-        OVERFLOW_SIZE.set(overflow_size)
+        cache_size=apsw_conn.status(apsw.SQLITE_STATUS_MEMORY_USED)[0]
+        SQLITE_USED_RAM.set(cache_size)
         collect_system_metrics()
         if os.path.exists(database_path):
             DB_SIZE.set(os.path.getsize(database_path))
