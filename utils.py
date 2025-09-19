@@ -73,7 +73,7 @@ def collect_system_metrics():
     TCP_ESTABLISHED.set(len(tcp_conns_established))
     retranssegs=get_tcp_retranssegs()
     TCP_RETRANSSEGS.set(retranssegs)
-    tcp_inuse=psutil.net_connection(kind="tcp")
+    tcp_inuse=psutil.net_connections(kind="tcp")
     tcp_inuse_length=len(tcp_inuse)
     TCP_INUSE.set(tcp_inuse_length)
     
