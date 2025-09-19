@@ -19,7 +19,7 @@ RSS=Gauge("process_resident_memory_megabytes","RSS Resident memory size in megab
 TCP_ESTABLISHED=Gauge("node_netstat_tcp_CurrEstab", "Number of established TCP connections")
 TCP_RETRANSSEGS=Gauge("node_netstat_Tcp_RetransSegs","tcp segments that are retransmitted")
 TCP_INUSE=Gauge("node_sockstat_TCP_inuse","number of all TCP connections in use")
-
+PAGE_FAULTS=Gauge("process_page_faults_major_total","all major page faults ")
 
 def current_time():
     date=datetime.now().replace(microsecond=0)
@@ -50,6 +50,12 @@ def get_tcp_retranssegs():
         values_line=lines[1].split()
         stats=dict(zip(names_line,values_line))
         return int(stats["RetransSegs"])
+    
+def get_page_faults(pid):
+    with open(f"/proc/{pid}/stat") as f:
+        data=f.read().split()
+        major_pf=int(data[11])
+        return major_pf
 
 def collect_system_metrics():
     CPU_USAGE.set(psutil.cpu_percent())
@@ -60,6 +66,8 @@ def collect_system_metrics():
     process=psutil.Process(pid)
     rss_mbytes=process.memory_info().rss/(1024*1024)
     RSS.set(rss_mbytes)
+    major_pf=get_page_faults(pid)
+    PAGE_FAULTS.set(major_pf)
     swapped_memory=psutil.swap_memory()
     swapped_memory_mbytes=swapped_memory/(1024*1024)
     SWAPPED_RAM.set(swapped_memory_mbytes)
@@ -76,6 +84,7 @@ def collect_system_metrics():
     tcp_inuse=psutil.net_connections(kind="tcp")
     tcp_inuse_length=len(tcp_inuse)
     TCP_INUSE.set(tcp_inuse_length)
+    
     
     
     
