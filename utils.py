@@ -112,12 +112,6 @@ def collect_system_metrics():
         logging.exception("TCP_ESTABLISHED failed")
         
     try:
-        retranssegs=get_tcp_retranssegs()
-        TCP_RETRANSSEGS.set(retranssegs)
-    except Exception:
-        logging.exception("TCP_RETRANSSEGS failed")
-        
-    try:
         tcp_inuse=psutil.net_connections(kind="tcp")
         tcp_inuse_length=len(tcp_inuse)
         TCP_INUSE.set(tcp_inuse_length)
