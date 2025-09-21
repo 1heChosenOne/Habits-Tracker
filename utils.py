@@ -93,7 +93,7 @@ def collect_system_metrics():
         logging.exception("PAGE_FAULTS failed")
     try:
         swapped_memory=psutil.swap_memory()
-        swapped_memory_mbytes=swapped_memory/(1024*1024)
+        swapped_memory_mbytes=swapped_memory.used/(1024*1024)
         SWAPPED_RAM.set(swapped_memory_mbytes)
     except Exception:
         logging.exception("SWAPPED_RAM failed") 
