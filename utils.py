@@ -46,20 +46,6 @@ def get_user_or_404(user_id:int,conn):
     
     
     
-def get_tcp_retranssegs():
-    netsat="/proc/net/netstat"
-    if os.path.exists(netsat):
-        with open(netsat) as f:
-            lines=f.readlines()
-            for i in range(len(lines)-1):
-                if lines[i].startswith("TcpExt:"):
-                    names_line=lines[i].split()
-                    values_line=lines[i+1].split()
-                    stats=dict(zip(names_line,values_line))
-                    return int(stats["RetransSegs"])
-    else:
-        logging.error("get_tcp_retranssegs couldn't find /proc/net/netstat path ")
-    
 def get_page_faults(pid):
     pidstat=f"/proc/{pid}/stat"
     if os.path.exists(pidstat):
