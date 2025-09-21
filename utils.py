@@ -51,10 +51,12 @@ def get_tcp_retranssegs():
     if os.path.exists(netsat):
         with open(netsat) as f:
             lines=f.readlines()
-            names_line=lines[0].split()
-            values_line=lines[1].split()
-            stats=dict(zip(names_line,values_line))
-            return int(stats["RetransSegs"])
+            for i in range(len(lines)-1):
+                if lines[i].startswith("TcpExt:"):
+                    names_line=lines[i].split()
+                    values_line=lines[i+1].split()
+                    stats=dict(zip(names_line,values_line))
+                    return int(stats["RetransSegs"])
     else:
         logging.error("get_tcp_retranssegs couldn't find /proc/net/netstat path ")
     
@@ -71,14 +73,17 @@ def get_page_faults(pid):
 def collect_system_metrics():
     CPU_USAGE.set(psutil.cpu_percent())
     RAM_USAGE.set(psutil.virtual_memory().percent)
+    
     try:
         CPU_USAGE_BY_MODE.labels(mode="user").set(psutil.cpu_times_percent(interval=0).user)
     except Exception:
         logging.exception("CPU_USAGE_BY_MODE user failed")
+        
     try:
         CPU_USAGE_BY_MODE.labels(mode="system").set(psutil.cpu_times_percent(interval=0).system)
     except Exception:
         logging.exception("CPU_USAGE_BY_MODE system failed")
+        
     try:
         pid=os.getpid()
         process=psutil.Process(pid)
@@ -86,39 +91,46 @@ def collect_system_metrics():
         RSS.set(rss_mbytes)
     except Exception:
         logging.exception("RSS failed")
+        
     try:
         major_pf=get_page_faults(pid)
         PAGE_FAULTS.set(major_pf)
     except Exception:
         logging.exception("PAGE_FAULTS failed")
+        
     try:
         swapped_memory=psutil.swap_memory()
         swapped_memory_mbytes=swapped_memory.used/(1024*1024)
         SWAPPED_RAM.set(swapped_memory_mbytes)
     except Exception:
         logging.exception("SWAPPED_RAM failed") 
+        
     try:
         load1=psutil.getloadavg()[0]
         LOAD_1MIN_AVERAGE.set(load1)
     except Exception:
         logging.exception("LOAD_1MIN_AVERAGE failed")
+        
     try:
         used_bytes=psutil.virtual_memory().used
         used_mbytes=used_bytes/(1024*1024)
         RAM_USAGE_MBYTES.set(used_mbytes)
     except Exception:
         logging.exception("RAM_USAGE_MBYTES failed")
+        
     try:
         tcp_conns=psutil.net_connections(kind="tcp")
         tcp_conns_established=[c for c in tcp_conns if c.status=="ESTABLISHED"]
         TCP_ESTABLISHED.set(len(tcp_conns_established))
     except Exception:
         logging.exception("TCP_ESTABLISHED failed")
+        
     try:
         retranssegs=get_tcp_retranssegs()
         TCP_RETRANSSEGS.set(retranssegs)
     except Exception:
         logging.exception("TCP_RETRANSSEGS failed")
+        
     try:
         tcp_inuse=psutil.net_connections(kind="tcp")
         tcp_inuse_length=len(tcp_inuse)
